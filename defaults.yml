@@ -1,0 +1,22 @@
+---
+# defaults file for this role
+
+samba_users:
+  tc: tc
+
+startup_script: /opt/bootlocal.sh
+
+samba_config:
+  workgroup: Workgroup
+  "server string": Samba Server
+  security: user
+  "log file": /usr/local/samba/var/log.%m
+  "max log size": 50
+  browsable: "yes"
+  "server signing": auto
+
+samba_shares:
+  homes:
+    comment: Home Directories
+    browsable: "no"
+    writable: "yes"

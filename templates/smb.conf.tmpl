@@ -1,0 +1,12 @@
+[global]
+{% for key, value in samba_config.iteritems() %}
+{{key}} = {{value}}
+{% endfor %}
+
+{% for share, cfg in samba_shares.iteritems() %}
+[{{share}}]
+{% for key, value in cfg.iteritems() %}
+{{key}} = {{value}}
+{% endfor %}
+
+{% endfor %}

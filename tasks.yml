@@ -1,0 +1,76 @@
+---
+# tasks file for this role
+
+- name: Download Python (so Ansible commands can run)
+  raw: tce-load -w python
+
+- name: Install Python (so Ansible commands can run)
+  raw: tce-load -ils python
+
+- name: Install samba3.tcz
+  command: tce-load -wi samba3
+  args:
+    creates: /usr/local/bin/smbpasswd
+
+- name: Ensure samba3 will load at boot
+  lineinfile: >
+    line=samba3.tcz
+    dest=/etc/sysconfig/tcedir/onboot.lst
+  sudo: yes
+
+- name: Stop samba service
+  command: /usr/local/etc/init.d/samba stop
+  sudo: yes
+
+- name: Setup smb.conf
+  template: >
+    src=smb.conf.tmpl
+    dest=/usr/local/etc/samba/smb.conf
+  sudo: yes
+
+- name: Ensure samba configuration and lock directories exist
+  file: >
+    dest={{item}}
+    state=directory owner=root group=root mode=0755
+  sudo: yes
+  with_items:
+    - /usr/local/etc/samba/private
+    - /var/lib/samba
+
+- name: Remove existing samba passwords and secrets
+  file: dest=/usr/local/etc/samba/private/{{item}}.tdb state=absent
+  sudo: yes
+  with_items:
+    - passdb
+    - secrets
+
+- name: Set up samba passwords
+  shell: >
+    echo -ne '{{item.value}}\n{{item.value}}\n' |
+    /usr/local/bin/smbpasswd -as {{item.key}}
+  with_dict: samba_users
+  sudo: yes
+
+- name: Ensure samba configuration will be backed up
+  lineinfile: dest=/opt/.filetool.lst line=/usr/local/etc/samba/{{item}}
+  with_items:
+    - smb.conf
+    - private
+  sudo: yes
+
+- name: Ensure boot script exists
+  lineinfile: >
+    dest={{startup_script}} insertbefore=BOF
+    line="#!/bin/sh"
+    create=yes owner=root group=root mode=0755
+  sudo: yes
+
+- name: Ensure samba service will be started at boot
+  lineinfile: >
+    dest={{startup_script}}
+    line="/usr/local/etc/init.d/samba start"
+  sudo: yes
+
+- name: Start samba service
+  command: /usr/local/etc/init.d/samba start
+  sudo: yes
