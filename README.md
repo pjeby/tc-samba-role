@@ -27,7 +27,7 @@ Role Variables
 
 * `samba_shares` - a dictionary describing any shares to be created in `smb.conf`.  Keys are share names, values are dictionaries of options.  The default just sets up the standard home directory shares.
 
-* `startup_script` - a shell script that the
+* `startup_script` - a shell script that the `samba start` command will be added to.  Defaults to `/opt/bootlocal.sh`; be sure to change this to `/var/lib/boot2docker/bootlocal.sh` if you're using `boot2docker`.
 
 Note that in both `samba_config` and `samba_shares`, you must enclose any `yes` or `no` values in quotes, so that they will be written to `smb.conf` as strings instead of boolean values.
 
